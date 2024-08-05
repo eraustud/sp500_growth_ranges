@@ -30,8 +30,10 @@ function makeChart(returns) {
                 }
             ]
         },
-        responsive: true,
-        maintainAspectRatio: false
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
     });
     sortedReturnsChart = new Chart('sortedReturnsChart', {
         type: 'bar',
@@ -43,8 +45,10 @@ function makeChart(returns) {
                 }
             ]
         },
-        responsive: true,
-        maintainAspectRatio: false
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
     });
 
     const deciles = calculateDeciles(average_returns);
