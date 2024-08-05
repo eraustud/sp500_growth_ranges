@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <head>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.7.0/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    
     <title>S&P 500 Historical Range Of Returns</title>
+    <link rel="stylesheet" href="./styles.css">
 
 </head>
 <body>
-    <canvas id="returnsChart" width="80%" height="40%"></canvas>
-    <script>
-
-    </script>
+    <canvas id="returnsChart"></canvas>
+    <label for="years">Years To Invest</label>
+    <input type="text" name="years" id="years" value="10"/>
+    <label for="dollars">Dollars Per Year To Invest</label>
+    <input type="text" name="dollars" id="dollars" value="10000"/>
 </body>
 </html>
+<script src="./charts.js"></script>
