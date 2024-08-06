@@ -2,6 +2,7 @@ const yearsinput = document.querySelector('#years');
 const dollarsinput = document.querySelector('#dollars');
 const decile_elements = document.querySelectorAll('#deciles td');
 const startyearinput = document.querySelector("#start");
+const average_element = document.querySelector("#average-of-averages");
 
 let savedReturns = [];
 let defaultReturnsData = [];
@@ -12,10 +13,11 @@ function makeChart(returns) {
     let returnsdata = returns.map((d) => d.Returns);
     defaultReturnsData = returnsdata.slice();
     const startoffset = Math.max(0, (Number(startyearinput.value) - 1871) * 12);
-    returnsdata = returnsdata.slice(startoffset);
+    returnsdata = returnsdata.slice(startoffset, -8);
+    //returnsdata = returnsdata.filter((val, i) => {if (i % 12 === 0) return val}); // converting to annual
     savedReturns = returnsdata;
     const window_size = Math.min(savedReturns.length, Number(yearsinput.value) * 12);
-    const average_returns = calculateDistributionOfReturns(returnsdata,window_size);
+    const { percentages: average_returns, average: average_of_averages } = calculateDistributionOfReturns(returnsdata,window_size);
     const sorted_returns = average_returns.slice().sort((a,b) => a - b);
     let yearlabels = Array.from(new Array(average_returns.length),(e,i)=>i+1);
     yearlabels = yearlabels.map((val) => Math.floor(1871 + (1.0/12) + (startoffset + val)/12));
@@ -55,11 +57,12 @@ function makeChart(returns) {
     for (let i = 0; i < deciles.length; i++) {
         decile_elements[i+1].innerHTML = `${deciles[i]}%`;
     }
+    average_element.innerHTML = `${average_of_averages}%`;
 }
 
 function updateDataDisplay() {
     const window_size = Math.min(savedReturns.length, Number(yearsinput.value) * 12);
-    const average_returns = calculateDistributionOfReturns(savedReturns,window_size);
+    const { percentages: average_returns, average: average_of_averages } = calculateDistributionOfReturns(savedReturns,window_size);
     const sorted_returns = average_returns.slice().sort((a,b) => a - b); 
     const startoffset = Math.max(0, (Number(startyearinput.value) - 1871) * 12);
     let yearlabels = Array.from(new Array(average_returns.length),(e,i)=>i+1);
@@ -74,6 +77,7 @@ function updateDataDisplay() {
     for (let i = 0; i < deciles.length; i++) {
         decile_elements[i+1].innerHTML = `${deciles[i]}%`;
     }
+    average_element.innerHTML = `${average_of_averages}%`;
 }
 
 yearsinput.onchange = (event) => {
@@ -164,7 +168,7 @@ function geoMeanReturns(weights, returns) {
     for (let i = 0; i < weights.length; i++) {
         sum_of_weighted_returns += Math.log(returns[i])*weights[i];
     }
-    return Math.exp(sum_of_weighted_returns)
+    return Math.exp(sum_of_weighted_returns);
 }
 
 /**
@@ -195,15 +199,26 @@ function calculateReturnForWindow(real_total_values, contributions) {
  * @return {Array} return_values
  */
 function calculateDistributionOfReturns(real_total_values, window_size) {
+    const percentages = new Array(real_total_values.length - window_size + 1);
     const return_values = new Array(real_total_values.length - window_size + 1);
     if (!window_size) {
         window_size = real_total_values.length;
     }
     // slide the window across the array of historical data
     for (let i = 0; i < return_values.length; i++) {
-       return_values[i] = (Math.pow(calculateReturnForWindow(real_total_values.slice(i, i + 1 + window_size)),12) - 1) * 100; // return %
+        return_values[i] = Math.pow(calculateReturnForWindow(real_total_values.slice(i, i + 1 + window_size)), 12);
+        percentages[i] = (return_values[i] - 1) * 100; // return %
     }
-    return return_values;
+    
+    let geo_sum = 0;
+    for (let i = 0; i < return_values.length; i++) {
+        geo_sum += Math.log(return_values[i]);
+    }
+    const average = Math.exp(geo_sum / return_values.length);
+    return  {
+                percentages: percentages,
+                average: average
+            };
 }
 
 
